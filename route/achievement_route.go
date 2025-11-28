@@ -9,13 +9,21 @@ import (
 func RegisterAchievementRoutes(v1 fiber.Router, achievementService *service.AchievementService) {
 	protected := v1.Group("/achievements", middleware.AuthRequired) 
 	
-	// POST /api/v1/achievements (Submit Prestasi)
+	// FR-003: Submit Prestasi (Draft)
 	protected.Post("/", middleware.RBACRequired("achievement:create"), achievementService.SubmitPrestasi)
+	
+	// FR-004: Submit for Verification
 	protected.Post("/:id/submit", middleware.RBACRequired("achievement:update"), achievementService.SubmitForVerification)
+	
+	// FR-005: Soft Delete Prestasi (Draft Only)
 	protected.Delete("/:id", middleware.RBACRequired("achievement:delete"), achievementService.DeletePrestasi)
-	// GET /api/v1/achievements (List Prestasi)
-	// protected.Get("/", middleware.RBACRequired("achievement:read"), achievementService.ListPrestasi)
+	
+	// FR-006 & FR-010: List Prestasi (Filtered by Role)
+	protected.Get("/", middleware.RBACRequired("achievement:read"), achievementService.ListAllAchievements)
 
-	// TODO: Tambahkan rute CRUD, Verify, dan Reject di sini
-	// protected.Put("/:id", middleware.RBACRequired("achievement:update"), achievementService.UpdatePrestasi)
+	// FR-007: Verify Prestasi (Lecturer/Admin)
+	protected.Post("/:id/verify", middleware.RBACRequired("achievement:verify"), achievementService.VerifyPrestasi)
+	
+	// FR-008: Reject Prestasi (Lecturer/Admin)
+	protected.Post("/:id/reject", middleware.RBACRequired("achievement:verify"), achievementService.RejectPrestasi)
 }
