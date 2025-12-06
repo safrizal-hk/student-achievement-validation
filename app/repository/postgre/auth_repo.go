@@ -77,7 +77,6 @@ func (r *authRepositoryImpl) GetPermissionsByRoleID(roleID string) ([]string, er
 	return permissions, nil
 }
 
-// FindUserByID (Profile & Refresh)
 func (r *authRepositoryImpl) FindUserByID(id string) (*model_postgre.User, string, error) {
 	user := new(model_postgre.User)
 	var roleName string

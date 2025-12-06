@@ -6,7 +6,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// ReportMongoRepository Interface
 type ReportMongoRepository interface {
 	GetAchievementStatistics(ctx context.Context, studentIDs []string) ([]bson.M, error)
 	GetStudentAchievementDetails(ctx context.Context, studentIDHex string) ([]bson.M, error)
@@ -22,9 +21,7 @@ func NewReportMongoRepository(db *mongo.Database) ReportMongoRepository {
 	}
 }
 
-// GetAchievementStatistics: Total per Tipe, Distribusi Level (FR-011)
 func (r *reportMongoRepositoryImpl) GetAchievementStatistics(ctx context.Context, studentIDs []string) ([]bson.M, error) {
-	// Filter berdasarkan studentIDs yang diberikan (atau semua jika studentIDs kosong)
 	var matchStage bson.D
 	filter := bson.M{"deletedAt": nil}
 	if len(studentIDs) > 0 {
@@ -58,7 +55,6 @@ func (r *reportMongoRepositoryImpl) GetAchievementStatistics(ctx context.Context
 	return results, nil
 }
 
-// GetStudentAchievementDetails: Mengambil detail prestasi untuk report spesifik mahasiswa
 func (r *reportMongoRepositoryImpl) GetStudentAchievementDetails(ctx context.Context, studentIDHex string) ([]bson.M, error) {
 	filter := bson.M{"studentId": studentIDHex, "deletedAt": nil}
 	
