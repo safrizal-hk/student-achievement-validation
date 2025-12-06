@@ -4,12 +4,13 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/safrizal-hk/uas-gofiber/app/model/postgre"
+	model_postgre "github.com/safrizal-hk/uas-gofiber/app/model/postgre"
 )
 
 type AuthRepository interface {
-	FindUserByEmailOrUsername(identifier string) (*model.User, string, error) 
+	FindUserByEmailOrUsername(identifier string) (*model_postgre.User, string, error) 
 	GetPermissionsByRoleID(roleID string) ([]string, error)
+	FindUserByID(id string) (*model_postgre.User, string, error) // ⚠️ BARU
 }
 
 type authRepositoryImpl struct {
@@ -20,8 +21,8 @@ func NewAuthRepository(db *sql.DB) AuthRepository {
 	return &authRepositoryImpl{DB: db}
 }
 
-func (r *authRepositoryImpl) FindUserByEmailOrUsername(identifier string) (*model.User, string, error) {
-	user := new(model.User)
+func (r *authRepositoryImpl) FindUserByEmailOrUsername(identifier string) (*model_postgre.User, string, error) {
+	user := new(model_postgre.User)
 	var roleName string
 
 	query := `
@@ -74,4 +75,27 @@ func (r *authRepositoryImpl) GetPermissionsByRoleID(roleID string) ([]string, er
 		permissions = append(permissions, name)
 	}
 	return permissions, nil
+}
+
+// FindUserByID (Profile & Refresh)
+func (r *authRepositoryImpl) FindUserByID(id string) (*model_postgre.User, string, error) {
+	user := new(model_postgre.User)
+	var roleName string
+
+	query := `
+		SELECT u.id, u.username, u.email, u.password_hash, u.full_name, u.role_id, u.is_active, r.name
+		FROM users u
+		JOIN roles r ON u.role_id = r.id
+		WHERE u.id = $1
+	`
+	err := r.DB.QueryRow(query, id).Scan(
+		&user.ID, &user.Username, &user.Email, &user.PasswordHash, 
+		&user.FullName, &user.RoleID, &user.IsActive, &roleName,
+	) 
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) { return nil, "", nil }
+		return nil, "", fmt.Errorf("repository error: %w", err)
+	}
+	return user, roleName, nil
 }
