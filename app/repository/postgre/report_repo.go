@@ -12,6 +12,8 @@ type ReportPGRepository interface {
 	FindStudentIdByUserID(userID string) (string, error)
 	FindStudentProfile(studentID string) (*model_postgre.Student, error)
 	GetStudentAchievementReferences(studentID string) ([]model_postgre.AchievementReference, error)
+	FindLecturerIdByUserID(userID string) (string, error)
+    GetAdviseeStudentIDs(lecturerID string) ([]string, error)
 }
 
 type reportPGRepositoryImpl struct {
@@ -93,4 +95,37 @@ func (r *reportPGRepositoryImpl) GetStudentAchievementReferences(studentID strin
 		references = append(references, ref)
 	}
 	return references, nil
+}
+
+func (r *reportPGRepositoryImpl) FindLecturerIdByUserID(userID string) (string, error) {
+    var lecturerID string
+    query := `SELECT id FROM lecturers WHERE user_id = $1`
+    err := r.DB.QueryRow(query, userID).Scan(&lecturerID)
+    if err != nil {
+        if errors.Is(err, sql.ErrNoRows) {
+            return "", nil
+        }
+        return "", err
+    }
+    return lecturerID, nil
+}
+
+// 2. Ambil Semua Student ID yang dibimbing oleh Dosen Ini
+func (r *reportPGRepositoryImpl) GetAdviseeStudentIDs(lecturerID string) ([]string, error) {
+    query := `SELECT id FROM students WHERE advisor_id = $1`
+    rows, err := r.DB.Query(query, lecturerID)
+    if err != nil {
+        return nil, err
+    }
+    defer rows.Close()
+
+    var studentIDs []string
+    for rows.Next() {
+        var id string
+        if err := rows.Scan(&id); err != nil {
+            return nil, err
+        }
+        studentIDs = append(studentIDs, id)
+    }
+    return studentIDs, nil
 }
