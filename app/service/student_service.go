@@ -19,6 +19,16 @@ func NewStudentService(studentRepo repo_postgre.StudentRepository, achievementRe
 	}
 }
 
+// ListStudents godoc
+// @Summary      List Semua Mahasiswa
+// @Description  Mendapatkan daftar semua mahasiswa yang terdaftar.
+// @Tags         Students
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200  {object}  map[string]interface{} "List Mahasiswa"
+// @Failure      500  {object}  map[string]interface{} "Internal Server Error"
+// @Router       /students [get]
 func (s *StudentService) ListStudents(c *fiber.Ctx) error {
 	students, err := s.StudentRepo.GetAllStudents()
 	if err != nil {
@@ -27,6 +37,17 @@ func (s *StudentService) ListStudents(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success", "data": students})
 }
 
+// GetStudentDetail godoc
+// @Summary      Detail Mahasiswa
+// @Description  Mendapatkan detail profil mahasiswa berdasarkan ID.
+// @Tags         Students
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id   path      string  true  "Student ID (UUID)"
+// @Success      200  {object}  map[string]interface{} "Detail Mahasiswa"
+// @Failure      404  {object}  map[string]interface{} "Not Found"
+// @Router       /students/{id} [get]
 func (s *StudentService) GetStudentDetail(c *fiber.Ctx) error {
 	id := c.Params("id")
 	student, err := s.StudentRepo.GetStudentDetail(id)
@@ -36,6 +57,19 @@ func (s *StudentService) GetStudentDetail(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success", "data": student})
 }
 
+// SetAdvisor godoc
+// @Summary      Set Dosen Wali
+// @Description  Menentukan atau mengubah dosen wali untuk mahasiswa tertentu.
+// @Tags         Students
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id   path      string                         true "Student ID (UUID)"
+// @Param        body body      model_postgre.SetAdvisorRequest true "Advisor ID Payload"
+// @Success      200  {object}  map[string]interface{} "Success"
+// @Failure      400  {object}  map[string]interface{} "Bad Request"
+// @Failure      500  {object}  map[string]interface{} "Internal Server Error"
+// @Router       /students/{id}/advisor [put]
 func (s *StudentService) SetAdvisor(c *fiber.Ctx) error {
 	id := c.Params("id")
 	req := new(model_postgre.SetAdvisorRequest)
@@ -50,6 +84,17 @@ func (s *StudentService) SetAdvisor(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success", "message": "Advisor berhasil diatur"})
 }
 
+// GetStudentAchievements godoc
+// @Summary      List Prestasi Mahasiswa
+// @Description  Melihat daftar prestasi milik mahasiswa tertentu (Dilihat oleh Admin/Dosen).
+// @Tags         Students
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id   path      string  true  "Student ID (UUID)"
+// @Success      200  {object}  map[string]interface{} "List Prestasi"
+// @Failure      500  {object}  map[string]interface{} "Internal Server Error"
+// @Router       /students/{id}/achievements [get]
 func (s *StudentService) GetStudentAchievements(c *fiber.Ctx) error {
 	studentID := c.Params("id")
     

@@ -13,6 +13,16 @@ func NewLecturerService(lecturerRepo repo_postgre.LecturerRepository) *LecturerS
 	return &LecturerService{LecturerRepo: lecturerRepo}
 }
 
+// ListLecturers godoc
+// @Summary      List Semua Dosen
+// @Description  Mendapatkan daftar semua dosen yang terdaftar di sistem.
+// @Tags         Lecturers
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200  {object}  map[string]interface{} "List Dosen"
+// @Failure      500  {object}  map[string]interface{} "Internal Server Error"
+// @Router       /lecturers [get]
 func (s *LecturerService) ListLecturers(c *fiber.Ctx) error {
 	lecturers, err := s.LecturerRepo.GetAllLecturers()
 	if err != nil {
@@ -21,6 +31,18 @@ func (s *LecturerService) ListLecturers(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success", "data": lecturers})
 }
 
+// GetLecturerAdvisees godoc
+// @Summary      List Mahasiswa Bimbingan
+// @Description  Mendapatkan daftar mahasiswa yang dibimbing oleh Dosen tertentu berdasarkan ID Dosen.
+// @Tags         Lecturers
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id   path      string  true  "Lecturer ID (UUID)"
+// @Success      200  {object}  map[string]interface{} "List Mahasiswa Bimbingan"
+// @Failure      404  {object}  map[string]interface{} "Dosen Tidak Ditemukan"
+// @Failure      500  {object}  map[string]interface{} "Internal Server Error"
+// @Router       /lecturers/{id}/advisees [get]
 func (s *LecturerService) GetLecturerAdvisees(c *fiber.Ctx) error {
 	lecturerID := c.Params("id")
 

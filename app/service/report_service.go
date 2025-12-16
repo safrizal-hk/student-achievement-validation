@@ -23,6 +23,17 @@ func NewReportService(mongoRepo repoMongo.ReportMongoRepository, pgRepo repoPost
 	}
 }
 
+// GetStatistics godoc
+// @Summary      Dashboard Statistik
+// @Description  Mendapatkan statistik prestasi (Total per tipe & level) berdasarkan Role user (Admin: Semua, Mahasiswa: Pribadi, Dosen: Bimbingan).
+// @Tags         Reports
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200  {object}  map[string]interface{} "Statistik Data"
+// @Failure      403  {object}  map[string]interface{} "Forbidden"
+// @Failure      500  {object}  map[string]interface{} "Internal Server Error"
+// @Router       /reports/statistics [get]
 func (s *ReportService) GetStatistics(c *fiber.Ctx) error {
     profile := middleware.GetUserProfileFromContext(c)
     ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -85,6 +96,18 @@ func (s *ReportService) GetStatistics(c *fiber.Ctx) error {
     })
 }
 
+// GetStudentReport godoc
+// @Summary      Laporan Detail Mahasiswa
+// @Description  Melihat daftar lengkap prestasi milik satu mahasiswa spesifik (Admin/Dosen Wali/Mahasiswa ybs).
+// @Tags         Reports
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id   path      string  true  "Student ID (UUID)"
+// @Success      200  {object}  map[string]interface{} "List Prestasi"
+// @Failure      403  {object}  map[string]interface{} "Forbidden"
+// @Failure      500  {object}  map[string]interface{} "Internal Server Error"
+// @Router       /reports/student/{id} [get]
 func (s *ReportService) GetStudentReport(c *fiber.Ctx) error {
 	profile := middleware.GetUserProfileFromContext(c)
 	studentID := c.Params("id") // UUID Mahasiswa yang diminta

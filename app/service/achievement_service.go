@@ -31,6 +31,17 @@ func NewAchievementService(mongoRepo repoMongo.AchievementMongoRepository, pgRep
 	}
 }
 
+// ListAllAchievements godoc
+// @Summary      List Data Prestasi
+// @Description  Melihat daftar prestasi yang difilter otomatis berdasarkan Role (Admin=All, Dosen=Bimbingan, Mahasiswa=Milik Sendiri)
+// @Tags         Achievements
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200  {object}  map[string]interface{} "Data Prestasi"
+// @Failure      403  {object}  map[string]interface{} "Forbidden"
+// @Failure      500  {object}  map[string]interface{} "Internal Server Error"
+// @Router       /achievements [get]
 func (s *AchievementService) ListAllAchievements(c *fiber.Ctx) error {
 	profile := middleware.GetUserProfileFromContext(c)
 	var references []modelPostgres.AchievementReference
@@ -116,6 +127,18 @@ func (s *AchievementService) ListAllAchievements(c *fiber.Ctx) error {
 	})
 }
 
+// GetAchievementDetail godoc
+// @Summary      Detail Prestasi
+// @Description  Melihat detail lengkap satu prestasi (Gabungan Postgres & Mongo)
+// @Tags         Achievements
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id   path      string  true  "Achievement ID (Postgres UUID)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      404  {object}  map[string]interface{} "Not Found"
+// @Failure      500  {object}  map[string]interface{} "Internal Error"
+// @Router       /achievements/{id} [get]
 func (s *AchievementService) GetAchievementDetail(c *fiber.Ctx) error {
 	achievementID := c.Params("id")
 
@@ -139,6 +162,18 @@ func (s *AchievementService) GetAchievementDetail(c *fiber.Ctx) error {
 	})
 }
 
+// SubmitPrestasi godoc
+// @Summary      Buat Prestasi (Draft)
+// @Description  Mahasiswa membuat draft laporan prestasi baru.
+// @Tags         Achievements
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        body body      modelMongo.AchievementInput true "Data Prestasi"
+// @Success      201  {object}  map[string]interface{} "Created"
+// @Failure      400  {object}  map[string]interface{} "Bad Request"
+// @Failure      403  {object}  map[string]interface{} "Forbidden (Bukan Mahasiswa)"
+// @Router       /achievements [post]
 func (s *AchievementService) SubmitPrestasi(c *fiber.Ctx) error {
 	profile := middleware.GetUserProfileFromContext(c)
 	if profile.Role != "Mahasiswa" {
@@ -199,6 +234,19 @@ func (s *AchievementService) SubmitPrestasi(c *fiber.Ctx) error {
 	})
 }
 
+// UpdatePrestasi godoc
+// @Summary      Update Prestasi
+// @Description  Update data prestasi (Hanya jika status Draft/Rejected).
+// @Tags         Achievements
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id   path      string                     true "Achievement ID"
+// @Param        body body      modelMongo.AchievementInput true "Data Update"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]interface{} "Status bukan Draft"
+// @Failure      403  {object}  map[string]interface{} "Bukan pemilik"
+// @Router       /achievements/{id} [put]
 func (s *AchievementService) UpdatePrestasi(c *fiber.Ctx) error {
 	profile := middleware.GetUserProfileFromContext(c)
 	achievementID := c.Params("id")
@@ -235,6 +283,15 @@ func (s *AchievementService) UpdatePrestasi(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success", "message": "Prestasi berhasil diperbarui"})
 }
 
+// DeletePrestasi godoc
+// @Summary      Hapus Prestasi (Soft Delete)
+// @Description  Menghapus prestasi (Hanya jika status Draft).
+// @Tags         Achievements
+// @Security     BearerAuth
+// @Param        id   path      string  true  "Achievement ID"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]interface{}
+// @Router       /achievements/{id} [delete]
 func (s *AchievementService) DeletePrestasi(c *fiber.Ctx) error {
 	profile := middleware.GetUserProfileFromContext(c)
 	achievementID := c.Params("id")
@@ -271,6 +328,15 @@ func (s *AchievementService) DeletePrestasi(c *fiber.Ctx) error {
 	})
 }
 
+// SubmitForVerification godoc
+// @Summary      Submit untuk Verifikasi
+// @Description  Mengubah status Draft menjadi Submitted.
+// @Tags         Achievements
+// @Security     BearerAuth
+// @Param        id   path      string  true  "Achievement ID"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]interface{}
+// @Router       /achievements/{id}/submit [post]
 func (s *AchievementService) SubmitForVerification(c *fiber.Ctx) error {
 	profile := middleware.GetUserProfileFromContext(c)
 	achievementID := c.Params("id")
@@ -306,6 +372,14 @@ func (s *AchievementService) SubmitForVerification(c *fiber.Ctx) error {
 	})
 }
 
+// VerifyPrestasi godoc
+// @Summary      Verifikasi Prestasi (Dosen)
+// @Description  Mengubah status menjadi Verified.
+// @Tags         Achievements
+// @Security     BearerAuth
+// @Param        id   path      string  true  "Achievement ID"
+// @Success      200  {object}  map[string]interface{}
+// @Router       /achievements/{id}/verify [post]
 func (s *AchievementService) VerifyPrestasi(c *fiber.Ctx) error {
 	profile := middleware.GetUserProfileFromContext(c)
 	achievementID := c.Params("id")
@@ -324,6 +398,15 @@ func (s *AchievementService) VerifyPrestasi(c *fiber.Ctx) error {
 	})
 }
 
+// RejectPrestasi godoc
+// @Summary      Tolak Prestasi (Dosen)
+// @Description  Mengubah status menjadi Rejected dengan catatan.
+// @Tags         Achievements
+// @Security     BearerAuth
+// @Param        id   path      string  true  "Achievement ID"
+// @Param        body body      map[string]string true "Rejection Note: {'rejection_note': '...'}"
+// @Success      200  {object}  map[string]interface{}
+// @Router       /achievements/{id}/reject [post]
 func (s *AchievementService) RejectPrestasi(c *fiber.Ctx) error {
 	profile := middleware.GetUserProfileFromContext(c)
 	achievementID := c.Params("id")
@@ -351,6 +434,14 @@ func (s *AchievementService) RejectPrestasi(c *fiber.Ctx) error {
 	})
 }
 
+// GetHistory godoc
+// @Summary      Lihat Riwayat Status
+// @Description  Melihat log perubahan status prestasi.
+// @Tags         Achievements
+// @Security     BearerAuth
+// @Param        id   path      string  true  "Achievement ID"
+// @Success      200  {object}  map[string]interface{}
+// @Router       /achievements/{id}/history [get]
 func (s *AchievementService) GetHistory(c *fiber.Ctx) error {
 	achievementID := c.Params("id")
 	ref, err := s.PgRepo.GetReferenceByID(achievementID)
@@ -368,6 +459,16 @@ func (s *AchievementService) GetHistory(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success", "data": history})
 }
 
+// AddAttachment godoc
+// @Summary      Upload Attachment
+// @Description  Mengunggah file lampiran prestasi.
+// @Tags         Achievements
+// @Security     BearerAuth
+// @Accept       multipart/form-data
+// @Param        id   path      string  true  "Achievement ID"
+// @Param        file formData  file    true  "File Lampiran"
+// @Success      200  {object}  map[string]interface{}
+// @Router       /achievements/{id}/attachments [post]
 func (s *AchievementService) AddAttachment(c *fiber.Ctx) error {
 	profile := middleware.GetUserProfileFromContext(c)
 	achievementID := c.Params("id")

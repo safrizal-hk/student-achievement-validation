@@ -21,6 +21,18 @@ func NewAuthService(repo repo_postgre.AuthRepository) *AuthService {
 	return &AuthService{AuthRepo: repo}
 }
 
+// Login godoc
+// @Summary      Login Pengguna
+// @Description  Otentikasi user menggunakan email/username dan password untuk mendapatkan JWT Token.
+// @Tags         Authentication
+// @Accept       json
+// @Produce      json
+// @Param        request body model_postgre.LoginRequest true "Login Payload"
+// @Success      200  {object}  map[string]interface{} "Success Login"
+// @Failure      400  {object}  map[string]interface{} "Bad Request"
+// @Failure      401  {object}  map[string]interface{} "Unauthorized (Salah Password/Tidak Aktif)"
+// @Failure      500  {object}  map[string]interface{} "Internal Server Error"
+// @Router       /auth/login [post]
 func (s *AuthService) Login(c *fiber.Ctx) error {
 	req := new(model_postgre.LoginRequest)
 	
@@ -80,6 +92,17 @@ func (s *AuthService) Login(c *fiber.Ctx) error {
 	})
 }
 
+// RefreshToken godoc
+// @Summary      Refresh Access Token
+// @Description  Mendapatkan Access Token baru menggunakan Refresh Token yang valid.
+// @Tags         Authentication
+// @Accept       json
+// @Produce      json
+// @Param        request body model_postgre.RefreshTokenRequest true "Refresh Token Payload"
+// @Success      200  {object}  map[string]interface{} "Token Baru"
+// @Failure      400  {object}  map[string]interface{} "Bad Request"
+// @Failure      401  {object}  map[string]interface{} "Token Expired/Invalid"
+// @Router       /auth/refresh [post]
 func (s *AuthService) RefreshToken(c *fiber.Ctx) error {
 	req := new(model_postgre.RefreshTokenRequest)
 	if err := c.BodyParser(req); err != nil {
@@ -131,6 +154,13 @@ func (s *AuthService) RefreshToken(c *fiber.Ctx) error {
 	})
 }
 
+// Logout godoc
+// @Summary      Logout
+// @Description  Melakukan logout (Client-side clear token).
+// @Tags         Authentication
+// @Security     BearerAuth
+// @Success      200  {object}  map[string]interface{}
+// @Router       /auth/logout [post]
 func (s *AuthService) Logout(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"status":  "success",
@@ -138,6 +168,15 @@ func (s *AuthService) Logout(c *fiber.Ctx) error {
 	})
 }
 
+// Profile godoc
+// @Summary      Get User Profile
+// @Description  Mendapatkan informasi profil user yang sedang login.
+// @Tags         Authentication
+// @Security     BearerAuth
+// @Success      200  {object}  map[string]interface{} "User Profile"
+// @Failure      404  {object}  map[string]interface{} "Not Found"
+// @Failure      500  {object}  map[string]interface{} "Internal Error"
+// @Router       /auth/profile [get]
 func (s *AuthService) Profile(c *fiber.Ctx) error {
 	profileFromCtx := middleware.GetUserProfileFromContext(c)
 	

@@ -12,6 +12,8 @@ import (
 	"github.com/swaggo/fiber-swagger"
 )
 
+// http://localhost:3000/swagger/index.html
+
 // @title           Sistem Pelaporan Prestasi Mahasiswa API
 // @version         1.0
 // @description     Dokumentasi API untuk UAS Backend Lanjut (Hybrid Database: PostgreSQL & MongoDB).
